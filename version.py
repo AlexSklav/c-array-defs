@@ -35,6 +35,8 @@ With that setup, a new release can be labelled by simply invoking:
 
     git tag -s v1.0
 """
+from __future__ import print_function
+from builtins import str
 
 __author__ = ('Douglas Creager <dcreager@dcreager.net>',
               'Michal Nazarewicz <mina86@mina86.com>')
@@ -61,24 +63,23 @@ _GIT_DESCRIPTION_RE = r'^v(?P<ver>%s)-(?P<commits>\d+)-g(?P<sha>[\da-f]+)$' % (
 
 
 def readGitVersion():
-    try:
-        proc = subprocess.Popen(('git', 'describe', '--long',
-                                 '--match', 'v[0-9]*.*'),
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        data, _ = proc.communicate()
-        if proc.returncode:
-            return None
-        ver = data.splitlines()[0].strip()
-        proc = subprocess.Popen(('git', 'rev-parse', '--abbrev-ref', 'HEAD'),
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        branch, _ = proc.communicate()
-        if proc.returncode:
-            return None
-    except:
+    proc = subprocess.Popen(('git', 'describe', '--long', '--match',
+                             'v[0-9]*.*'), stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    data, _ = proc.communicate()
+    if proc.returncode:
+        return None
+    ver = data.splitlines()[0].strip().decode()
+    proc = subprocess.Popen(('git', 'rev-parse', '--abbrev-ref', 'HEAD'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    branch, _ = proc.communicate()
+    branch = branch.strip().decode()
+    if proc.returncode:
         return None
 
     if not ver:
         return None
+    print('[readGitVersion] ', ver)
     m = re.search(_GIT_DESCRIPTION_RE, ver)
     if not m:
         sys.stderr.write('version: git description (%s) is invalid, '
@@ -90,28 +91,23 @@ def readGitVersion():
     if not commits:
         version = m.group('ver')
     else:
-        version = '%s.post%d' % (
-            m.group('ver'), commits)
+        version = '%s.post%d' % (m.group('ver'), commits)
 
-    if branch.strip() != 'master':
-        version += '.dev%d' % int(m.group('sha'), 16)
+    if branch != 'master' and not branch.startswith('release'):
+        version += u'.dev%d' % int(m.group('sha'), 16)
 
     return version
 
 
 def readReleaseVersion():
-    try:
-        fd = open(RELEASE_VERSION_FILE)
-        try:
-            ver = fd.readline().strip()
-        finally:
-            fd.close()
-        if not re.search(_PEP386_VERSION_RE, ver):
-            sys.stderr.write('version: release version (%s) is invalid, '
-                             'will use it anyway\n' % ver)
-        return ver
-    except:
-        return None
+    with open(RELEASE_VERSION_FILE, 'r') as fd:
+        ver = fd.readline().strip()
+        print('[readReleaseVersion] ', ver)
+
+    if not re.search(_PEP386_VERSION_RE, ver):
+        sys.stderr.write('version: release version (%s) is invalid, will use '
+                         'it anyway\n' % ver)
+    return ver
 
 
 def writeReleaseVersion(version):
@@ -121,8 +117,11 @@ def writeReleaseVersion(version):
 
 
 def getVersion():
-    release_version = readReleaseVersion()
-    version = readGitVersion() or release_version
+    try:
+        release_version = readReleaseVersion()
+    except IOError:
+        release_version = None
+    version = readGitVersion()
     if not version:
         raise ValueError('Cannot find the version number')
     if version != release_version:
@@ -131,5 +130,4 @@ def getVersion():
 
 
 if __name__ == '__main__':
-    print getVersion()
-
+    print(getVersion())
