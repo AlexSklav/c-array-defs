@@ -15,7 +15,7 @@ setup(name='c-array-defs',
       author='Christian Fobel',
       author_email='christian@fobel.net',
       url='https://github.com/wheeler-microfluidics/c-array-defs',
-      license='GPL',
+      license='MIT',
       packages=['c_array_defs', ],
       # Install data listed in `MANIFEST.in`
       include_package_data=True)
