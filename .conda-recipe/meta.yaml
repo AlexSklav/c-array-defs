@@ -3,6 +3,15 @@
 source:
   git_url: ../
 
+build:
+  script:
+    - mkdir "%PREFIX%\Library\include\Arduino"  # [win]
+    - xcopy /S /Y /I /Q "%SRC_DIR%"\CArrayDefs "%PREFIX%"\Library\include  # [win]
+    - xcopy /S /Y /I /Q "%SRC_DIR%"\CArrayDefs "%PREFIX%"\Library\include\Arduino\CArrayDefs  # [win]
+    - mkdir -p "${PREFIX}/include/Arduino"  # [not win]
+    - cp -r "${SRC_DIR}/CArrayDefs" "${PREFIX}/include"  # [not win]
+    - cp -r "${SRC_DIR}/CArrayDefs" "${PREFIX}/include/Arduino"  # [not win]
+
 package:
   name: c-array-defs
 {% if GIT_DESCRIBE_NUMBER > '0' %}
@@ -10,13 +19,6 @@ package:
 {% else %}
   version: {{ GIT_DESCRIBE_TAG[1:] }}
 {% endif %}
-
-requirements:
-  build:
-    - future
-    - path_helpers >=0.3
-    - paver
-    - pip
 
 about:
   home: https://github.com/wheeler-microfluidics/c-array-defs
