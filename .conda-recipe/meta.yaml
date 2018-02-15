@@ -4,6 +4,7 @@ source:
   git_url: ../
 
 build:
+  noarch: generic
   script:
     - mkdir "%PREFIX%\Library\include\Arduino"  # [win]
     - xcopy /S /Y /I /Q "%SRC_DIR%"\CArrayDefs "%PREFIX%"\Library\include  # [win]
