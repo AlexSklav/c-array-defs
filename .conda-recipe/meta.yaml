@@ -11,6 +11,10 @@
 source:
   git_url: ../
 
+requirements:
+  build:
+    - platformio-helpers >=0.6
+
 build:
   noarch: generic
   script:
