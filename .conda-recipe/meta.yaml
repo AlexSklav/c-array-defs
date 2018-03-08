@@ -13,7 +13,7 @@ source:
 
 requirements:
   build:
-    - platformio-helpers >=0.6
+    - platformio-helpers >=0.7
 
 build:
   noarch: generic
